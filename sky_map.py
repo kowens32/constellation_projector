@@ -2,7 +2,7 @@ from skyfield.api import load, Topos
 from datetime import datetime
 from PIL import Image, ImageDraw
 
-def generate_star_map(lat, lon);
+def generate_star_map(lat, lon):
 ts = load.timescale()
 t = ts.now()
 
