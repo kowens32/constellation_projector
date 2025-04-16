@@ -1,0 +1,12 @@
+[Unit]
+Description=Dynamic Constellation Projector
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/constellation_projector/main.py
+WorkingDirectory=/home/pi/constellation_projector
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
