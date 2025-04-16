@@ -3,6 +3,7 @@
 output/
 __pycache__/
 *.pyc
+*.bsp
 
 # Ignore backup and log files
 *.log
@@ -16,3 +17,7 @@ __pycache__/
 .env/
 .venv/
 venv/
+
+# Python cache
+__pycache__/
+*.pyc
