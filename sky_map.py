@@ -1,30 +1,50 @@
 from skyfield.api import load, Topos
-from datetime import datetime
+from skyfield.starlib import Star
 from PIL import Image, ImageDraw
 
 def generate_star_map(lat, lon):
-ts = load.timescale()
-t = ts.now()
+    ts = load.timescale()
+    t = ts.now()
 
-eph = load('de421.bsp')
-observer = Topos(latittude_degrees=lat, longigtude_degrees=lon)
-earth = eph['earth']
-location = earth + observer
+    eph = load('de421.bsp')
+    observer = Topos(latitude_degrees=lat, longitude_degrees=lon)
+    earth = eph['earth']
+    location = earth + observer
 
-#loading bright stars from HIpparcos catalog 
+    image = Image.new("RGB", (800, 800), "black")
+    draw = ImageDraw.Draw(image)
 
-with load.open('star_data/bright_stars.csv') as f:
-    lines = f.readlines()
+    # Load star data
+    with open('star_data/hipparcos_visible.csv', 'r') as f:
+        lines = f.readlines()
 
-image = Image.new("RGB", (800,800), "black")
-draw = ImageDraw.draw(image)
+    for line in lines[1:]:
+        try:
+            ra, dec, mag = map(float, line.strip().split(','))
+            if mag > 6.5:
+                continue
+            star = Star(ra_hours=ra, dec_degrees=dec)
+            astrometric = location.at(t).observe(star)
+            alt, az, _ = astrometric.apparent().altaz()
+            if alt.degrees > 0:
+                x = int((az.degrees / 360) * 800)
+                y = int((1 - (alt.degrees / 90)) * 800)
+                size = max(1, int(3 - mag / 2))
+                draw.ellipse((x-size, y-size, x+size, y+size), fill="white")
+        except Exception as e:
+            print(f"Skipping star due to error: {e}")
 
-for line in lines[1:]: # Skip header
-    ra, dec = map(float, line.strip().split(','))
-    star = eph['earth'].at(t).observe(load.star(ra_hours=ra, dec_degress=dec))
-    alt, az, _ = star.apparent().altaz()
-    if alt.degress > 0:
-        x = int((az.degress / 360 ) * 800)
-        y = int((1 - (alt.degrees / 90)) * 800)
-        draw.ellipse((x-1, y-1, x+1, y +1), fill="white")
-return image
+    # Draw planets
+    for name in ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']:
+        try:
+            planet = eph[name]
+            astrometric = location.at(t).observe(planet)
+            alt, az, _ = astrometric.apparent().altaz()
+            if alt.degrees > 0:
+                x = int((az.degrees / 360) * 800)
+                y = int((1 - (alt.degrees / 90)) * 800)
+                draw.ellipse((x-3, y-3, x+3, y+3), fill="cyan")
+        except Exception as e:
+            print(f"Skipping planet {name} due to error: {e}")
+
+    return image
