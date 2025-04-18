@@ -4,6 +4,7 @@ output/
 __pycache__/
 *.pyc
 *.bsp
+#test line
 
 # Ignore backup and log files
 *.log
